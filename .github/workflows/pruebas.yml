@@ -1,0 +1,31 @@
+name: pruebas
+
+on:
+  push:
+    paths-ignore: ['**.md', 'LICENSE', '.gitignore']
+  pull_request:
+    paths-ignore: ['**.md', 'LICENSE', '.gitignore']
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+          cache: maven
+
+      # El esqueleto tiene que compilar SIEMPRE. Si esto falla, la construccion se rompe.
+      - name: Compilar
+        run: mvn --batch-mode test-compile
+
+      - name: Pruebas
+        if: github.repository != 'UIB-22354-Programacion-Avanzada/t2-ejercicios-2-1'
+        run: mvn --batch-mode test
+
+      # En la plantilla las pruebas fallan a proposito: se informa y no rompe.
+      - name: Pruebas (plantilla sin resolver; se informa y no rompe)
+        if: github.repository == 'UIB-22354-Programacion-Avanzada/t2-ejercicios-2-1'
+        run: mvn --batch-mode test -Dmaven.test.failure.ignore=true
